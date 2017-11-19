@@ -1,18 +1,30 @@
 #!/usr/bin/env bash
 # See README.md for info on running these tests.
 
+nodebin-rebased
+testAllEngines() {
+  compile "all-engines"
+  assertCapturedSuccess
+}
+=======
 # TODO: check this test on heroku-16
 # testBowerAngularResolution() {
 #  compile "bower-angular-resolution"
 #  assertCaptured "Bower may need a resolution hint for angular"
 #  assertCapturedError
 #}
+master
 
 testNoVersion() {
   compile "no-version"
   assertCaptured "engines.node (package.json):  unspecified"
+nodebin-rebased
+  assertCaptured "Resolving node version 6.x"
+  assertCaptured "Downloading and installing node 6."
+=======
   assertCaptured "Resolving node version 8.x"
   assertCaptured "Downloading and installing node 8."
+master
   assertCapturedSuccess
 }
 
@@ -117,7 +129,7 @@ testCacheWithPrebuild() {
 testYarnSemver() {
   compile "yarn-semver"
   assertCaptured "Resolving yarn version ~0.17"
-  assertCaptured "installing yarn (0.17."
+  assertCaptured "installing yarn 0.17."
   assertCapturedSuccess
 }
 
@@ -148,7 +160,9 @@ testYarnRun() {
 
 testYarnEngine() {
   compile "yarn-engine"
-  assertCaptured "installing yarn (0.16.1)"
+  assertCaptured "engines.yarn (package.json): 0.16.1"
+  assertNotCaptured "engines.npm"
+  assertCaptured "installing yarn 0.16.1"
   assertCapturedSuccess
 }
 
@@ -336,10 +350,8 @@ testUntrackedDependencies() {
 
 testBadJson() {
   compile "bad-json"
-  assertCaptured "Build failed"
-  assertCaptured "We're sorry this build is failing"
   assertNotCaptured "Installing binaries"
-  assertCapturedError 1 "Unable to parse"
+  assertCapturedError 1 "This project's package.json file has invalid syntax"
 }
 
 testBuildWithUserCacheDirectoriesCamel() {
@@ -406,24 +418,32 @@ testConcurrencyTooHigh() {
 testInvalidNode() {
   compile "invalid-node"
   assertCaptured "Resolving node version 0.11.333"
+ nodebin-rebased
+  assertCaptured "Unable to resolve"
+=======
   assertCaptured "Could not find Node version corresponding to version requirement: 0.11.333"
   assertCaptured "No matching version found for Node: 0.11.333"
   assertCaptured "https://kb.heroku.com/why-is-my-node-js-build-failing-because-of-no-matching-node-versions"
   assertCapturedError
 }
 
-testInvalidNodeSemver() {
+estInvalidNodeSemver() {
   compile "invalid-node-semver"
   assertCaptured "Resolving node version stable"
   assertCaptured "Error: Invalid semantic version \"stable\""
   assertCaptured "Invalid semver requirement"
+master
   assertCapturedError
 }
 
 testInvalidIo() {
   compile "invalid-io"
   assertCaptured "Resolving iojs version 2.0.99"
+nodebin-rebased
+  assertCaptured "Unable to resolve"
+=======
   assertCaptured "Could not find Iojs version corresponding to version requirement: 2.0.99"
+master
   assertCapturedError
 }
 
@@ -476,7 +496,10 @@ testIoJs() {
 
 testSpecificVersion() {
   compile "specific-version"
+nodebin-rebased
+=======
   assertCaptured "Resolving node version"
+master
   assertCaptured "Downloading and installing node 0.10.29"
   assertCaptured "Using default npm version: 1.4.14"
   assertCapturedSuccess
@@ -510,7 +533,11 @@ testOldNpm2() {
 
 testNonexistentNpm() {
   compile "nonexistent-npm"
+nodebin-rebased
+  assertCaptured "Unable to install npm 1.1.65; does it exist?"
+=======
   assertCaptured "Unable to install npm 1.1.65"
+master
   assertCapturedError 1 ""
 }
 
@@ -522,13 +549,21 @@ testSameNpm() {
 
 testNpmVersionRange() {
   compile "npm-version-range"
+ nodebin-rebased
+  assertCaptured "Bootstrapping npm 1.4."
+=======
   assertCaptured "Bootstrapping npm 1.4.x"
+master
   assertCapturedSuccess
 }
 
 testNpmVersionSpecific() {
   compile "npm-version-specific"
   assertCaptured "Bootstrapping npm 2.1.11"
+nodebin-rebased
+  assertNotCaptured "Resolving npm version"
+=======
+master
   assertNotCaptured "WARNING"
   assertCapturedSuccess
 }
@@ -553,7 +588,7 @@ testTicketOnFailure() {
 testInfoEmpty() {
   compile "info-empty"
   assertCaptured "engines.node (package.json):  unspecified"
-  assertCaptured "engines.npm (package.json):   unspecified"
+  assertCaptured "engines.npm (package.json):   default"
   assertCaptured "Installing node modules (package.json)"
   assertCapturedSuccess
 }

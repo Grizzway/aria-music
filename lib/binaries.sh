@@ -1,5 +1,17 @@
 install_yarn() {
   local dir="$1"
+nodebin-rebased
+  local version="$2"
+  local number
+  local url
+
+  echo "Resolving yarn version ${version:-(latest)}..."
+  if ! read number url < <(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=$version" "https://nodebin.herokai.com/v1/yarn/$platform/latest.txt"); then
+    echo "Unable to resolve; does that version exist?" && false
+  fi
+
+  echo "Downloading and installing yarn $number..."
+=======
   local version=${2:-1.x}
   local number
   local url
@@ -10,6 +22,7 @@ install_yarn() {
   fi
 
   echo "Downloading and installing yarn ($number)..."
+master
   local code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 -o /tmp/yarn.tar.gz --write-out "%{http_code}")
   if [ "$code" != "200" ]; then
     echo "Unable to download yarn: $code" && false
@@ -29,14 +42,24 @@ install_yarn() {
 install_nodejs() {
   local version=${1:-8.x}
   local dir="$2"
+  local number
+  local url
 
   echo "Resolving node version $version..."
   if ! read number url < <(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=$version" "https://nodebin.herokai.com/v1/node/$platform/latest.txt"); then
+nodebin-rebased
+    echo "Unable to resolve; does that version exist?" && false
+  fi
+
+  echo "Downloading and installing node $number..."
+  local code=$(curl "$url" --silent --fail --retry 5 --retry-max-time 15 -o /tmp/node.tar.gz --write-out "%{http_code}")
+=======
     fail_bin_install node $version;
   fi
 
   echo "Downloading and installing node $number..."
   local code=$(curl "$url" -L --silent --fail --retry 5 --retry-max-time 15 -o /tmp/node.tar.gz --write-out "%{http_code}")
+master
   if [ "$code" != "200" ]; then
     echo "Unable to download node: $code" && false
   fi
@@ -49,10 +72,18 @@ install_nodejs() {
 install_iojs() {
   local version="$1"
   local dir="$2"
+  local number
+  local url
 
+nodebin-rebased
+  echo "Resolving iojs version ${version:-(latest)}..."
+  if ! read number url < <(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=$version" "https://nodebin.herokai.com/v1/iojs/$platform/latest.txt"); then
+    echo "Unable to resolve; does that version exist?" && false
+=======
   echo "Resolving iojs version ${version:-(latest stable)}..."
   if ! read number url < <(curl --silent --get --retry 5 --retry-max-time 15 --data-urlencode "range=$version" "https://nodebin.herokai.com/v1/iojs/$platform/latest.txt"); then
     fail_bin_install iojs $version;
+master
   fi
 
   echo "Downloading and installing iojs $number..."
@@ -83,9 +114,20 @@ install_npm() {
   elif [[ `npm --version` == "$version" ]]; then
     echo "npm `npm --version` already installed with node"
   else
+nodebin-rebased
+    if [[ `npm --version` == "$version" ]]; then
+      echo "npm `npm --version` already installed with node"
+    else
+      echo "Bootstrapping npm $version (replacing `npm --version`)..."
+      if ! npm install --unsafe-perm --quiet -g "npm@$version" 2>@1 >/dev/null; then
+        echo "Unable to install npm $version; does it exist?" && false
+      fi
+      echo "npm `npm --version` installed"
+=======
     echo "Bootstrapping npm $version (replacing `npm --version`)..."
     if ! npm install --unsafe-perm --quiet -g "npm@$version" 2>@1>/dev/null; then
       echo "Unable to install npm $version; does it exist?" && false
+master
     fi
     echo "npm `npm --version` installed"
   fi
